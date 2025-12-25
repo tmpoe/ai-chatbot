@@ -13,7 +13,6 @@ export async function POST(req: Request) {
     model: google('gemini-2.0-flash-lite'),
     messages,
     tools,
-    maxSteps: 5, // Allow the model to use tools up to 5 times in a conversation
   });
 
   return result.toTextStreamResponse();
