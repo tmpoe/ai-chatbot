@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "ai-chatbot-backend"
+version = "0.1.0"
+description = "Python backend for AI chatbot with MCP support"
+authors = ["AI Chatbot <chatbot@example.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.0"
+uvicorn = {extras = ["standard"], version = "^0.32.0"}
+mcp = "^1.0.0"
+google-generativeai = "^0.8.0"
+python-dotenv = "^1.0.0"
+pydantic = "^2.0.0"
+pydantic-settings = "^2.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-asyncio = "^0.24.0"
+black = "^24.0.0"
+ruff = "^0.7.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

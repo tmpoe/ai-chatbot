@@ -1,20 +1,37 @@
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { streamText } from 'ai';
-import { tools } from '@/lib/tools';
-import { DEFAULT_MODEL } from '@/lib/models';
-
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || '',
-});
-
 export async function POST(req: Request) {
-  const { messages, model = DEFAULT_MODEL } = await req.json();
+  try {
+    const body = await req.json();
+    
+    // Forward request to Python backend
+    const pythonBackendUrl = process.env.PYTHON_BACKEND_URL || 'http://localhost:8000';
+    const response = await fetch(`${pythonBackendUrl}/api/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
 
-  const result = streamText({
-    model: google(model),
-    messages,
-    tools,
-  });
+    if (!response.ok) {
+      throw new Error(`Backend responded with ${response.status}`);
+    }
 
-  return result.toTextStreamResponse();
+    // Stream the response back to the frontend
+    return new Response(response.body, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
+    });
+  } catch (error) {
+    console.error('Error proxying to Python backend:', error);
+    return new Response(
+      JSON.stringify({ error: 'Failed to connect to backend' }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
 }

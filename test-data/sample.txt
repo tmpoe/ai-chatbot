@@ -1,0 +1,11 @@
+This is a sample document about AI and MCP.
+
+MCP (Model Context Protocol) allows AI assistants to access external tools and data sources.
+
+With MCP, your chatbot can:
+- Read files from your filesystem
+- Query databases
+- Access APIs
+- Control other applications
+
+This makes AI assistants much more powerful and useful!
