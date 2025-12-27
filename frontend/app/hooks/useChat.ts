@@ -7,7 +7,7 @@ export type { Message } from './useChatMessages';
 export function useChat() {
   const [input, setInput] = useState('');
   const { selectedModel, setSelectedModel } = useModelSelection();
-  const { messages, isLoading, sendMessage } = useChatMessages(selectedModel);
+  const { messages, isLoading, sendMessage, retryLastMessage } = useChatMessages(selectedModel);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -28,5 +28,6 @@ export function useChat() {
     handleSubmit,
     selectedModel,
     setSelectedModel,
+    retryLastMessage,
   };
 }

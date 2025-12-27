@@ -167,7 +167,8 @@ class GeminiLLM:
                 import json
                 print(json.dumps(gemini_tools, indent=2))
             
-            yield f"Error: {str(e)}"
+            # User-friendly error message
+            yield "Something went wrong. Please try again later."
 
 
 # Global LLM instance

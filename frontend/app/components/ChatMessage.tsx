@@ -2,9 +2,10 @@ import { Message } from '../hooks/useChat';
 
 type ChatMessageProps = {
   message: Message;
+  onRetry?: () => void;
 };
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, onRetry }: ChatMessageProps) {
   return (
     <div
       className={`flex ${
@@ -21,6 +22,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
         <div className="whitespace-pre-wrap break-words">
           {message.content}
         </div>
+        {message.isError && onRetry && (
+          <button
+            onClick={onRetry}
+            className="mt-2 px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
+        )}
       </div>
     </div>
   );

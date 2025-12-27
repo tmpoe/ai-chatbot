@@ -10,7 +10,7 @@ import { ModelSelector } from './components/ModelSelector';
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
-  const { messages, input, setInput, isLoading, handleSubmit, selectedModel, setSelectedModel } = useChat();
+  const { messages, input, setInput, isLoading, handleSubmit, selectedModel, setSelectedModel, retryLastMessage } = useChat();
 
   useEffect(() => {
     setMounted(true);
@@ -32,7 +32,7 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-                AI Chatbot with Gemini
+                AI Chatbot
               </h1>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
                 Try asking: "What's 25 × 37?" or "What's the weather in Tokyo?"
@@ -49,7 +49,11 @@ export default function Home() {
           {messages.length === 0 && <EmptyState />}
           
           {messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
+            <ChatMessage
+              key={message.id}
+              message={message}
+              onRetry={message.isError ? retryLastMessage : undefined}
+            />
           ))}
 
           {isLoading && <LoadingIndicator />}

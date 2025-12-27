@@ -1,27 +1,46 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { ModelId } from '@/lib/models';
 
 export type Message = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  isError?: boolean;
 };
 
 export function useChatMessages(selectedModel: ModelId) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const lastUserMessageRef = useRef<string>('');
 
   const sendMessage = useCallback(
-    async (content: string) => {
+    async (content: string, isRetry = false) => {
       if (!content.trim() || isLoading) return;
 
-      const userMessage: Message = {
-        id: Date.now().toString(),
-        role: 'user',
-        content,
-      };
+      // Store the user message for potential retry
+      lastUserMessageRef.current = content;
 
-      setMessages((prev) => [...prev, userMessage]);
+      let userMessage: Message | null = null;
+
+      // If this is a retry, remove the last error message but don't add a new user message
+      if (isRetry) {
+        setMessages((prev) => {
+          const lastMsg = prev[prev.length - 1];
+          if (lastMsg?.isError) {
+            return prev.slice(0, -1);
+          }
+          return prev;
+        });
+      } else {
+        // Only add user message if it's not a retry
+        userMessage = {
+          id: Date.now().toString(),
+          role: 'user',
+          content,
+        };
+        setMessages((prev) => [...prev, userMessage!]);
+      }
+
       setIsLoading(true);
 
       try {
@@ -29,10 +48,15 @@ export function useChatMessages(selectedModel: ModelId) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            messages: [...messages, userMessage].map((m) => ({
-              role: m.role,
-              content: m.content,
-            })),
+            messages: isRetry
+              ? messages.map((m) => ({
+                  role: m.role,
+                  content: m.content,
+                }))
+              : [...messages, userMessage!].map((m) => ({
+                  role: m.role,
+                  content: m.content,
+                })),
             model: selectedModel,
           }),
         });
@@ -71,6 +95,15 @@ export function useChatMessages(selectedModel: ModelId) {
               }
             }
           }
+          
+          // Check if the response is an error message
+          if (assistantMessage.includes('Something went wrong')) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId ? { ...m, isError: true } : m
+              )
+            );
+          }
         }
       } catch (error) {
         console.error('Error:', error);
@@ -79,7 +112,8 @@ export function useChatMessages(selectedModel: ModelId) {
           {
             id: Date.now().toString(),
             role: 'assistant',
-            content: 'Sorry, there was an error processing your request.',
+            content: 'Something went wrong. Please try again.',
+            isError: true,
           },
         ]);
       } finally {
@@ -89,9 +123,16 @@ export function useChatMessages(selectedModel: ModelId) {
     [isLoading, messages, selectedModel]
   );
 
+  const retryLastMessage = useCallback(() => {
+    if (lastUserMessageRef.current) {
+      sendMessage(lastUserMessageRef.current, true);
+    }
+  }, [sendMessage]);
+
   return {
     messages,
     isLoading,
     sendMessage,
+    retryLastMessage,
   };
 }
