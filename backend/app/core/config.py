@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Optional
 
 
 class Settings(BaseSettings):
@@ -13,7 +14,10 @@ class Settings(BaseSettings):
     # API Keys
     google_api_key: str
     
-    # MCP Server Configuration
+    # Database
+    database_url: Optional[str] = None
+    
+    # MCP Server Configuration (legacy single server)
     mcp_server_command: str = "npx"
     mcp_server_args: str = "-y,@modelcontextprotocol/server-filesystem,/Users/admin/work/ai-chatbot/test-data"
     
@@ -34,6 +38,28 @@ class Settings(BaseSettings):
     def allowed_origins_list(self) -> list[str]:
         """Convert comma-separated origins to list."""
         return [origin.strip() for origin in self.allowed_origins.split(",")]
+    
+    def get_mcp_servers_config(self) -> list[dict]:
+        """Get list of MCP servers to initialize."""
+        servers = [
+            {
+                "name": "filesystem",
+                "command": "npx",
+                "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/admin/work/ai-chatbot/test-data"],
+                "env": None
+            }
+        ]
+        
+        # Add PostgreSQL server if database URL is configured
+        if self.database_url:
+            servers.append({
+                "name": "postgres",
+                "command": "npx",
+                "args": ["-y", "@modelcontextprotocol/server-postgres"],
+                "env": {"DATABASE_URL": self.database_url}
+            })
+        
+        return servers
 
 
 # Global settings instance
