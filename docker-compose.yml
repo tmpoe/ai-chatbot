@@ -22,6 +22,27 @@ services:
     networks:
       - chatbot-network
 
+  # Ollama - Local LLM Server
+  ollama:
+    image: ollama/ollama:latest
+    container_name: chatbot-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./ollama-entrypoint.sh:/entrypoint.sh
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
+    networks:
+      - chatbot-network
+    # Uncomment for GPU support (requires nvidia-docker)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
   # Python Backend
   backend:
     build:
@@ -33,6 +54,7 @@ services:
       - DATABASE_URL=postgresql://chatbot:chatbot_password@postgres:5432/chatbot_db
       - ALLOWED_ORIGINS=http://localhost:3000
       - MCP_FILESYSTEM_PATH=/app/test-data
+      - OLLAMA_BASE_URL=http://ollama:11434
     ports:
       - "8000:8000"
     volumes:
@@ -41,6 +63,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      ollama:
+        condition: service_started
     networks:
       - chatbot-network
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
@@ -64,6 +88,7 @@ services:
 
 volumes:
   postgres_data:
+  ollama_data:
 
 networks:
   chatbot-network:

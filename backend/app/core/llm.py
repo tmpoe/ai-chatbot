@@ -9,12 +9,21 @@ class GeminiLLM:
     """Gemini LLM integration with tool calling support."""
     
     def __init__(self):
-        # Configure Gemini
-        genai.configure(api_key=settings.google_api_key)
         self.model_cache = {}
+        self._configured = False
+    
+    def _ensure_configured(self):
+        """Lazy initialization of Gemini API."""
+        if not self._configured:
+            from app.core.config import settings
+            if not settings.google_api_key:
+                raise ValueError("GOOGLE_API_KEY not set. Cannot use Gemini models.")
+            genai.configure(api_key=settings.google_api_key)
+            self._configured = True
     
     def _get_model(self, model_name: str):
         """Get or create Gemini model instance."""
+        self._ensure_configured()
         if model_name not in self.model_cache:
             self.model_cache[model_name] = genai.GenerativeModel(model_name)
         return self.model_cache[model_name]

@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     )
     
     # API Keys
-    google_api_key: str
+    google_api_key: Optional[str] = None
     
     # Database
     database_url: Optional[str] = None
