@@ -69,6 +69,7 @@ export function useChatMessages(selectedModel: ModelId) {
         const decoder = new TextDecoder();
         let assistantMessage = '';
         const assistantId = (Date.now() + 1).toString();
+        let hasReceivedContent = false;
 
         if (reader) {
           setMessages((prev) => [
@@ -87,6 +88,13 @@ export function useChatMessages(selectedModel: ModelId) {
               if (line.startsWith('0:')) {
                 const text = line.slice(2).replace(/^"(.*)"$/, '$1');
                 assistantMessage += text;
+                
+                // Hide loading indicator as soon as we get first content
+                if (!hasReceivedContent && assistantMessage.length > 0) {
+                  hasReceivedContent = true;
+                  setIsLoading(false);
+                }
+                
                 setMessages((prev) =>
                   prev.map((m) =>
                     m.id === assistantId ? { ...m, content: assistantMessage } : m
