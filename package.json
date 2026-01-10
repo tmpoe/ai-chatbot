@@ -1,0 +1,26 @@
+{
+  "name": "ai-chatbot-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Chatbot monorepo with Next.js frontend and Python backend",
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:all": "./dev.sh",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "prettier": "^3.4.2",
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.3"
+  },
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

@@ -14,8 +14,9 @@ export function useChat() {
       e.preventDefault();
       if (!input.trim()) return;
       
-      await sendMessage(input);
-      setInput('');
+      const messageToSend = input;
+      setInput(''); // Clear input immediately
+      await sendMessage(messageToSend);
     },
     [input, sendMessage]
   );

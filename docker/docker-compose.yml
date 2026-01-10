@@ -13,7 +13,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ../apps/backend-chat-service/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U chatbot"]
       interval: 10s
@@ -46,7 +46,7 @@ services:
   # Python Backend
   backend:
     build:
-      context: ./backend
+      context: ../apps/backend-chat-service
       dockerfile: Dockerfile
     container_name: chatbot-backend
     environment:
@@ -58,8 +58,8 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./test-data:/app/test-data:ro
-      - ./backend:/app
+      - ../test-data:/app/test-data:ro
+      - ../apps/backend-chat-service:/app
     depends_on:
       postgres:
         condition: service_healthy
@@ -72,7 +72,7 @@ services:
   # Frontend (optional - for full stack)
   frontend:
     build:
-      context: ./frontend
+      context: ../apps/web
       dockerfile: Dockerfile
     container_name: chatbot-frontend
     environment:

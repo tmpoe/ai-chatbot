@@ -47,11 +47,16 @@ class ChatService:
         # Get the appropriate LLM provider
         llm_provider, actual_model = self._get_llm_provider(model)
         
+        # TEMPORARY: Disable tools for Ollama until tool calling is properly tested
+        # Ollama's tool calling format may be causing issues
+        use_tools = tools if not model.startswith("ollama:") else None
+        print(f"🔧 Model: {model}, Using tools: {use_tools is not None}")
+        
         # Generate streaming response with tools
         async for chunk in llm_provider.generate_stream(
             messages=message_dicts,
             model_name=actual_model,
-            tools=tools if tools else None
+            tools=use_tools
         ):
             yield chunk
 

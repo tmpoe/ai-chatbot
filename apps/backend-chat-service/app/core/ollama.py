@@ -39,21 +39,29 @@ class OllamaLLM:
         payload = {
             "model": model_name,
             "messages": ollama_messages,
-            "stream": True
+            "stream": True,
+            "options": {
+                "temperature": 0.7
+            }
         }
         
         # Add tools if provided (Ollama supports function calling)
         if tools:
             payload["tools"] = self._convert_tools_to_ollama_format(tools)
+            print(f"🔧 Added {len(tools)} tools to Ollama payload")
+        else:
+            print(f"🔧 No tools provided to Ollama")
         
         try:
             async with httpx.AsyncClient(timeout=60.0) as client:
+                print(f"🔍 Calling Ollama at {self.base_url}/api/chat with model {model_name}")
                 async with client.stream(
                     "POST",
                     f"{self.base_url}/api/chat",
                     json=payload
                 ) as response:
                     response.raise_for_status()
+                    print(f"✅ Ollama responded with status {response.status_code}")
                     
                     async for line in response.aiter_lines():
                         if line.strip():
@@ -62,19 +70,24 @@ class OllamaLLM:
                                 if "message" in chunk_data:
                                     content = chunk_data["message"].get("content", "")
                                     if content:
+                                        print(f"📝 Yielding: {repr(content)}")
                                         yield content
                             except json.JSONDecodeError:
                                 continue
                                 
         except httpx.ConnectError as e:
             print(f"❌ Error connecting to Ollama at {self.base_url}: {e}")
-            yield f"Error: Could not connect to Ollama at {self.base_url}. Make sure Ollama is running and accessible."
+            raise Exception(f"Could not connect to Ollama at {self.base_url}. Make sure Ollama is running.")
+        except httpx.HTTPStatusError as e:
+            print(f"❌ HTTP {e.response.status_code} error from Ollama: {e}")
+            print(f"   Response: {e.response.text}")
+            raise Exception(f"Ollama returned HTTP {e.response.status_code}. The model may not be installed.")
         except httpx.HTTPError as e:
             print(f"❌ HTTP error from Ollama: {e}")
-            yield f"Error: Ollama returned an error. The model may not be installed. Try: docker exec -it chatbot-ollama ollama pull {model_name}"
+            raise Exception("Ollama returned an error. Please try again.")
         except Exception as e:
             print(f"❌ Error generating response: {e}")
-            yield "Something went wrong. Please try again later."
+            raise
     
     def _convert_tools_to_ollama_format(self, tools: list[dict[str, Any]]) -> list[dict]:
         """Convert MCP tools to Ollama function calling format."""

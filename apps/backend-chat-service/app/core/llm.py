@@ -177,7 +177,7 @@ class GeminiLLM:
                 print(json.dumps(gemini_tools, indent=2))
             
             # User-friendly error message
-            yield "Something went wrong. Please try again later."
+            raise
 
 
 # Global LLM instance
